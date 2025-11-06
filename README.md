@@ -1,54 +1,36 @@
-# MCP Workshop - Simple Email Server
+# MCP Workshop - Gmail Servers
 
-## 1. Configure Gmail App Password
+Welcome to the MCP Workshop! This repository contains simple, educational examples of MCP (Model Context Protocol) servers for working with Gmail.
 
-To send emails via Gmail, you need to create an App Password:
+## What is MCP?
 
-[https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+MCP (Model Context Protocol) allows AI assistants like Claude to interact with external tools and services. These servers expose tools that Claude can use to perform actions on your behalf.
 
-## 2. Set Environment Variables
+## Workshop Structure
 
-Create a `.env` file or export these variables:
+This workshop includes two progressively simple MCP servers:
 
-```bash
-export GMAIL_USER="your-email@gmail.com"
-export GMAIL_APP_PASSWORD="your-app-password"
-```
+### 01_send_email
+A server that sends emails via Gmail SMTP.
 
-## 3. Test it with MCP Inspector
+**Tool:** `send_email` - Send an email to a recipient
 
-First, load your environment variables:
+[View Instructions →](./01_send_email/README.md)
 
-```bash
-source .env
-```
+### 02_retrieve_unread
+A server that retrieves unread emails via Gmail IMAP and creates draft replies.
 
-Then run the inspector:
+**Tools:**
+- `get_unread_emails` - Get unread emails from your inbox
+- `create_draft_replies` - Create draft replies with placeholder text
 
-```bash
-npx @modelcontextprotocol/inspector python3 servers/email/server.py
-```
+[View Instructions →](./02_retrieve_unread/README.md)
 
-## Using with Claude Desktop
+### 03_ai_draft_replies
+A server that creates AI-powered draft replies using Claude to analyze conversation context.
 
-To use this server with Claude Desktop, add this to your Claude config:
+**Tool:** `create_ai_draft_replies` - Create contextual draft replies using AI
 
-- **MacOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+[View Instructions →](./03_ai_draft_replies/README.md)
 
-```json
-{
-  "mcpServers": {
-    "email": {
-      "command": "python",
-      "args": ["/absolute/path/to/servers/email/server.py"],
-      "env": {
-        "GMAIL_USER": "your-email@gmail.com",
-        "GMAIL_APP_PASSWORD": "your-app-password"
-      }
-    }
-  }
-}
-```
 
-After updating the config, restart Claude Desktop.
