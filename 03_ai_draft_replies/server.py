@@ -7,7 +7,6 @@ This is a minimal example for teaching MCP server basics.
 import os
 import asyncio
 import imaplib
-import email
 import sys
 from email.mime.text import MIMEText
 from anthropic import Anthropic
@@ -15,6 +14,8 @@ from anthropic import Anthropic
 from mcp.server import Server
 from mcp.types import Tool, TextContent
 import mcp.server.stdio
+
+from utils import get_conversation_thread, generate_ai_reply
 
 
 # Step 1: Create the MCP server instance
@@ -116,79 +117,6 @@ async def create_ai_draft_replies(name: str, arguments: dict) -> list[TextConten
 
     except Exception as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
-
-
-def get_conversation_thread(mail, unread_msg, context_limit):
-    """Get conversation thread using Message-ID headers."""
-    thread = []
-
-    # Get the unread message body
-    body = extract_body(unread_msg)
-    thread.append({
-        "from": unread_msg.get("From", "Unknown"),
-        "subject": unread_msg.get("Subject", "No Subject"),
-        "body": body
-    })
-
-    # Try to find previous messages in thread using References header
-    references = unread_msg.get("References", "")
-    if references:
-        # References contains all Message-IDs in the thread
-        message_ids = references.split()[-context_limit:]  # Get last N message IDs
-
-        for msg_id in message_ids:
-            # Search for email by Message-ID
-            _, result = mail.search(None, f'HEADER Message-ID "{msg_id}"')
-            found_ids = result[0].split()
-
-            if found_ids:
-                _, msg_data = mail.fetch(found_ids[0], "(BODY.PEEK[])")
-                msg = email.message_from_bytes(msg_data[0][1])
-                body = extract_body(msg)
-                thread.insert(0, {
-                    "from": msg.get("From", "Unknown"),
-                    "subject": msg.get("Subject", "No Subject"),
-                    "body": body
-                })
-
-    return thread
-
-
-def extract_body(msg):
-    """Extract text body from email message."""
-    body = ""
-    if msg.is_multipart():
-        for part in msg.walk():
-            if part.get_content_type() == "text/plain":
-                payload = part.get_payload(decode=True)
-                if payload:
-                    body = payload.decode(errors='replace')
-                    break
-    else:
-        payload = msg.get_payload(decode=True)
-        if payload:
-            body = payload.decode(errors='replace')
-    return body.strip()
-
-
-def generate_ai_reply(client, thread, recipient):
-    """Generate AI reply using Claude."""
-    # Build conversation context
-    context = "Conversation thread:\n\n"
-    for i, msg in enumerate(thread, 1):
-        context += f"Email {i}:\nFrom: {msg['from']}\nSubject: {msg['subject']}\n\n{msg['body']}\n\n{'='*50}\n\n"
-
-    # Call Claude API
-    response = client.messages.create(
-        model="claude-3-haiku-20240307",
-        max_tokens=1024,
-        messages=[{
-            "role": "user",
-            "content": f"{context}\n\nBased on this email conversation, write a professional and helpful reply to {recipient}. Keep it concise and appropriate for the context."
-        }]
-    )
-
-    return response.content[0].text
 
 
 # Step 4: Run the server
