@@ -52,6 +52,8 @@ async def get_unread_emails(name: str, arguments: dict) -> list[TextContent]:
     if not gmail_user or not gmail_password:
         return [TextContent(type="text", text="Error: Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables")]
 
+    limit = arguments.get("limit", 10)
+
     try:
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(gmail_user, gmail_password)
