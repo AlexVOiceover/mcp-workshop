@@ -8,6 +8,7 @@ import os
 import asyncio
 import imaplib
 import sys
+import email
 from email.mime.text import MIMEText
 from anthropic import Anthropic
 
